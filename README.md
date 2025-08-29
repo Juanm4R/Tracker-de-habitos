@@ -2,9 +2,9 @@
 
 Integrantes:
 
-Juan Manuel Rivero
-Mateo Costa
-Bautista Poletti
-Nicolas Martinez
-Sofia Goldenberg
-Ona Timozuk
+Juan Manuel Rivero. 
+Mateo Costa. 
+Bautista Poletti. 
+Nicolas Martinez. 
+Sofia Goldenberg. 
+Ona Timozuk. 
