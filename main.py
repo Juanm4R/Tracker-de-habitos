@@ -11,4 +11,4 @@ def marcar_habito(cumplido=True):
         else:
             print("\n Número inválido.")
     except ValueError:
-        print("\n Debe ingresar un número.")
+        print("\n Debe ingresar un número.")     
