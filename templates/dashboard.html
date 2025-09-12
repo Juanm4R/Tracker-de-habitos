@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Mis Hábitos</h2>
+
+<form action="/agregar" method="post" class="d-flex mb-3">
+    <input type="text" name="nombre" class="form-control me-2" placeholder="Nuevo hábito" required>
+    <button class="btn btn-primary">Agregar</button>
+</form>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Hábito</th>
+            <th>Progreso</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for habito in habitos %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ habito[0] }}</td>
+            <td>{{ habito[1]|sum }}/{{ habito[1]|length }}</td>
+            <td>
+                <a href="/marcar/{{ loop.index0 }}/cumplido" class="btn btn-success btn-sm">✅</a>
+                <a href="/marcar/{{ loop.index0 }}/nocumplido" class="btn btn-warning btn-sm">❌</a>
+                <a href="/eliminar/{{ loop.index0 }}" class="btn btn-danger btn-sm">🗑️</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="4" class="text-center text-muted">No hay hábitos cargados.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

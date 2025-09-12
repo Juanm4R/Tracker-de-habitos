@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Estadísticas</h2>
+
+{% if estadisticas %}
+<table class="table table-hover table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Hábito</th>
+            <th>Porcentaje</th>
+            <th>Progreso</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for habito in estadisticas %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ habito[0] }}</td>
+            <td>{{ "%.2f"|format(habito[1]) }}%</td>
+            <td>{{ habito[2] }}/{{ habito[3] }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">Todavía no hay hábitos para mostrar estadísticas.</p>
+{% endif %}
+{% endblock %}
