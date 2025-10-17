@@ -247,7 +247,7 @@ def mostrar_plan_organizado():
         
 def menu():
     while True:
-        print("\n=== Tracker de Hábitos ===")
+        print("\n=== TRACKER DE HÁBITOS ===")
         print("1. Ver hábitos")
         print("2. Agregar hábito")
         print("3. Eliminar hábito")
@@ -256,9 +256,12 @@ def menu():
         print("6. Ver estadísticas (ranking)")
         print("7. Ver gráfico de barras")
         print("8. Ver gráfico de torta")
+        print("9. Ver premios por progreso")
+        print("10. Ver plan semanal")
+        print("11. Agregar actividad al plan semanal")
         print("0. Salir")
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
             mostrar_habitos()
@@ -277,11 +280,22 @@ def menu():
             grafico_barras()
         elif opcion == "8":
             grafico_torta()
+        elif opcion == "9":
+            if not habitos:
+                print("No hay hábitos cargados.")
+            else:
+                for nombre, progreso in habitos:
+                    cumplidos = sum(progreso)
+                    total = len(progreso)
+                    premio_por_progreso(nombre, cumplidos, total)
+        elif opcion == "10":
+            mostrar_plan_organizado()
+        elif opcion == "11":
+            agregar_actividad()
         elif opcion == "0":
             print("\n¡Hasta la próxima!")
             break
         else:
-            print("\n Opción no válida.")
-
+            print("\nOpción no válida.")
 if __name__ == "__main__":
     menu()
