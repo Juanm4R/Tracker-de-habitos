@@ -30,8 +30,8 @@ def grafico_torta():
         print("No hay hábitos cargados.")
         return
 
-    cumplidos = sum(sum(p) for _, p in habitos)
-    no_cumplidos = sum(len(p) - sum(p) for _, p in habitos)
+    cumplidos = sum(sum(cumplimiento) for nombre, cumplimiento in habitos)
+    no_cumplidos = sum(len(cumplimiento) - sum(cumplimiento) for nombre, cumplimiento in habitos)
 
     if cumplidos + no_cumplidos == 0:
         print("Aún no hay registros para mostrar.")
