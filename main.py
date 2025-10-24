@@ -2,26 +2,36 @@ import matplotlib.pyplot as plt
 import random
 import json
 import os
+from datetime import datetime
 
 ARCHIVO_DATOS = "datos_usuario.json"
 habitos = []
+plan_semanal = []
+historial = {}
+DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
 def guardar_datos():
     datos = {
         "habitos": habitos,
-        "plan_semanal": plan_semanal
+        "plan_semanal": plan_semanal,
+        "historial": historial
     }
     with open(ARCHIVO_DATOS, "w", encoding="utf-8") as f:
         json.dump(datos, f, indent=4, ensure_ascii=False)
 
 def cargar_datos():
-    global habitos, plan_semanal
+    global habitos, plan_semanal, historial
     if os.path.exists(ARCHIVO_DATOS):
         try:
             with open(ARCHIVO_DATOS, "r", encoding="utf-8") as f:
                 datos = json.load(f)
                 habitos = datos.get("habitos", [])
                 plan_semanal = datos.get("plan_semanal", [])
+                historial = datos.get("historial", {})
+
+                for i in range(len(habitos)):
+                    habitos[i][1] = [int(x) for x in habitos[i][1]]
+
                 print("Datos cargados correctamente.")
         except Exception as e:
             print("Error al cargar los datos:", e)
@@ -50,7 +60,6 @@ def grafico_barras():
     plt.tight_layout()
     plt.show()
 
-
 def grafico_torta():
     if not habitos:
         print("No hay hábitos cargados.")
@@ -72,6 +81,13 @@ def grafico_torta():
     plt.title("Proporción total de cumplimiento")
     plt.show()
 
+def registrar_historial(nombre, cumplido):
+    fecha_actual = datetime.now().strftime("%Y-%m-%d")
+    if nombre not in historial:
+        historial[nombre] = []
+    historial[nombre].append({"fecha": fecha_actual, "cumplido": cumplido})
+    guardar_datos()
+
 def marcar_habito(cumplido=True):
     if not mostrar_habitos():
         return
@@ -81,7 +97,7 @@ def marcar_habito(cumplido=True):
             habitos[num-1][1].append(1 if cumplido else 0)
             estado = "cumplido" if cumplido else "no cumplido"
             print(f"\nSe registró el hábito '{habitos[num-1][0]}' como {estado}.")
-            guardar_datos()
+            registrar_historial(habitos[num-1][0], 1 if cumplido else 0)
         else:
             print("\n Número inválido.")
     except ValueError:
@@ -100,6 +116,8 @@ def eliminar_habito():
         if 1 <= num <= len(habitos):
             nombre = habitos[num-1][0]
             habitos.pop(num-1)
+            if nombre in historial:
+                del historial[nombre]
             print(f"\n Hábito '{nombre}' eliminado.")
             guardar_datos()
         else:
@@ -112,7 +130,6 @@ def premio_por_progreso(habito, cumplido, total):
         return  
     
     porcentaje = round((cumplido / total) * 100)
-
     
     mensajes = {
         "bronce": [
@@ -150,35 +167,6 @@ def premio_por_progreso(habito, cumplido, total):
         print(random.choice(mensajes[categoria]))
     else:
         print("Todavía estás comenzando, cada pequeño paso cuenta.")
-def mostrar_habitos():
-    if not habitos:
-        print("No hay hábitos cargados.")
-        return False
-    print("Lista de Hábitos")
-    for i, (nombre, progreso) in enumerate(habitos, 1):
-        cumplidos = sum(progreso)
-        print(i, ".", nombre, "- Cumplidos:", cumplidos, "/", len(progreso))
-    return True
-
-def calcular_racha(progreso):
-    racha_maxima = 0
-    temp_max = 0
-    for dia in progreso:
-        if dia == 1:
-            temp_max += 1
-            if temp_max > racha_maxima:
-                racha_maxima = temp_max
-        else:
-            temp_max = 0
-    
-    racha_actual = 0
-    for dia in reversed(progreso):
-        if dia == 1:
-            racha_actual += 1
-        else:
-            break
-            
-    return racha_actual, racha_maxima
 
 def mostrar_habitos(solo_nombres=False):
     if not habitos:
@@ -204,7 +192,27 @@ def mostrar_habitos(solo_nombres=False):
                   "Racha Máxima:", racha_maxima,
                   "Últimos 7 Días:", cumplidos_semanales, "/", total_semanal)
     return True
-  
+
+def calcular_racha(progreso):
+    racha_maxima = 0
+    temp_max = 0
+    for dia in progreso:
+        if dia == 1:
+            temp_max += 1
+            if temp_max > racha_maxima:
+                racha_maxima = temp_max
+        else:
+            temp_max = 0
+    
+    racha_actual = 0
+    for dia in reversed(progreso):
+        if dia == 1:
+            racha_actual += 1
+        else:
+            break
+            
+    return racha_actual, racha_maxima
+
 def ver_estadisticas():
     if not habitos:
         print("No hay hábitos para mostrar estadísticas.")
@@ -212,27 +220,14 @@ def ver_estadisticas():
 
     estadisticas = []
     for nombre, progreso in habitos:
-        total = 0
-        for valor in progreso:
-            total += valor
+        total = sum(progreso)
+        porcentaje = (total / len(progreso)) * 100 if len(progreso) > 0 else 0
+        estadisticas.append([nombre, porcentaje, total, len(progreso)])
 
-        if len(progreso) > 0:
-            porcentaje = (total / len(progreso)) * 100
-            estadisticas.append([nombre, porcentaje, total, len(progreso)])
-        else:
-            estadisticas.append([nombre, 0, 0, 0])
-
-    n = len(estadisticas)
-    for i in range(n):
-        for j in range(0, n - i - 1):
-            if estadisticas[j][1] < estadisticas[j + 1][1]:
-                estadisticas[j], estadisticas[j + 1] = estadisticas[j + 1], estadisticas[j]
+    estadisticas.sort(key=lambda x: x[1], reverse=True)
 
     for nombre, porcentaje, total, cantidad in estadisticas:
         print(f"Hábito: {nombre} - {porcentaje:.2f}% ({total}/{cantidad})")
-
-plan_semanal = []  
-DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
 def agregar_actividad():
     print("\n--- Agregar Actividad ---")
@@ -249,7 +244,7 @@ def agregar_actividad():
     actividad = input("Ingrese la actividad: ")
 
     plan_semanal.append([dia, hora, actividad])
-    print(f"✅ Actividad '{actividad}' agregada para {dia} a las {hora}.")
+    print(f"Actividad '{actividad}' agregada para {dia} a las {hora}.")
     guardar_datos()
 
 def mostrar_plan_organizado():
@@ -273,7 +268,19 @@ def mostrar_plan_organizado():
     print("\n--- PLAN SEMANAL ORGANIZADO ---")
     for dia, hora, act in actividades_ordenadas:
         print(f"{dia} {hora} → {act}")
-        
+
+def ver_historial():
+    if not historial:
+        print("No hay registros de historial.")
+        return
+
+    print("\nHistorial de hábitos:")
+    for nombre, registros in historial.items():
+        print(f"\n- {nombre}:")
+        for r in registros:
+            estado = "Cumplido" if r["cumplido"] == 1 else "No cumplido"
+            print(f"  {r['fecha']} → {estado}")
+
 def menu():
     while True:
         print("\n=== TRACKER DE HÁBITOS ===")
@@ -288,6 +295,7 @@ def menu():
         print("9. Ver premios por progreso")
         print("10. Ver plan semanal")
         print("11. Agregar actividad al plan semanal")
+        print("12. Ver historial de hábitos")
         print("0. Salir")
 
         opcion = input("Seleccione una opción: ").strip()
@@ -321,12 +329,15 @@ def menu():
             mostrar_plan_organizado()
         elif opcion == "11":
             agregar_actividad()
+        elif opcion == "12":
+            ver_historial()
         elif opcion == "0":
             print("\n¡Hasta la próxima!")
             guardar_datos()
             break
         else:
             print("\nOpción no válida.")
+
 if __name__ == "__main__":
     cargar_datos()
     menu()
