@@ -19,6 +19,27 @@ def guardar_datos():
     with open(ARCHIVO_DATOS, "w", encoding="utf-8") as f:
         json.dump(datos, f, indent=4, ensure_ascii=False)
 
+def editar_habito():
+    if not habitos:
+        print("No hay hábitos para editar.")
+        return
+    for i, (nombre, progreso) in enumerate(habitos, start=1):
+        print(i, "-", nombre)
+    try:
+        indice = int(input("Ingrese el número del hábito a editar: ")) - 1
+        if indice < 0 or indice >= len(habitos):
+            print("Número inválido.")
+            return
+        nuevo_nombre = input("Ingrese el nuevo nombre del hábito: ").strip()
+        if nuevo_nombre == "":
+            print("El nombre no puede estar vacío.")
+            return
+        anterior = habitos[indice][0]
+        habitos[indice][0] = nuevo_nombre
+        print("Hábito editado:", anterior, "→", nuevo_nombre)
+    except ValueError:
+        print("Debe ingresar un número válido.")
+
 def cargar_datos():
     global habitos, plan_semanal, historial
     if os.path.exists(ARCHIVO_DATOS):
@@ -296,6 +317,7 @@ def menu():
         print("10. Ver plan semanal")
         print("11. Agregar actividad al plan semanal")
         print("12. Ver historial de hábitos")
+        print("13. Editar hábito")
         print("0. Salir")
 
         opcion = input("Seleccione una opción: ").strip()
@@ -331,6 +353,9 @@ def menu():
             agregar_actividad()
         elif opcion == "12":
             ver_historial()
+        elif opcion == "13":
+            editar_habito()
+            guardar_datos()
         elif opcion == "0":
             print("\n¡Hasta la próxima!")
             guardar_datos()
