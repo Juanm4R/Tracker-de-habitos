@@ -1,7 +1,32 @@
 import matplotlib.pyplot as plt
 import random
+import json
+import os
 
+ARCHIVO_DATOS = "datos_usuario.json"
 habitos = []
+
+def guardar_datos():
+    datos = {
+        "habitos": habitos,
+        "plan_semanal": plan_semanal
+    }
+    with open(ARCHIVO_DATOS, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=4, ensure_ascii=False)
+
+def cargar_datos():
+    global habitos, plan_semanal
+    if os.path.exists(ARCHIVO_DATOS):
+        try:
+            with open(ARCHIVO_DATOS, "r", encoding="utf-8") as f:
+                datos = json.load(f)
+                habitos = datos.get("habitos", [])
+                plan_semanal = datos.get("plan_semanal", [])
+                print("Datos cargados correctamente.")
+        except Exception as e:
+            print("Error al cargar los datos:", e)
+    else:
+        print("No se encontró un archivo de datos previo. Se creará uno nuevo al guardar.")
 
 def grafico_barras():
     if not habitos:
@@ -56,6 +81,7 @@ def marcar_habito(cumplido=True):
             habitos[num-1][1].append(1 if cumplido else 0)
             estado = "cumplido" if cumplido else "no cumplido"
             print(f"\nSe registró el hábito '{habitos[num-1][0]}' como {estado}.")
+            guardar_datos()
         else:
             print("\n Número inválido.")
     except ValueError:
@@ -64,6 +90,7 @@ def marcar_habito(cumplido=True):
 def agregar_habito(nombre):
     habitos.append([nombre, []])
     print(f"\nHábito '{nombre}' agregado.")
+    guardar_datos()
 
 def eliminar_habito():
     if not mostrar_habitos():
@@ -74,6 +101,7 @@ def eliminar_habito():
             nombre = habitos[num-1][0]
             habitos.pop(num-1)
             print(f"\n Hábito '{nombre}' eliminado.")
+            guardar_datos()
         else:
             print("\n Número inválido.")
     except ValueError:
@@ -222,6 +250,7 @@ def agregar_actividad():
 
     plan_semanal.append([dia, hora, actividad])
     print(f"✅ Actividad '{actividad}' agregada para {dia} a las {hora}.")
+    guardar_datos()
 
 def mostrar_plan_organizado():
     if not plan_semanal:
@@ -294,8 +323,10 @@ def menu():
             agregar_actividad()
         elif opcion == "0":
             print("\n¡Hasta la próxima!")
+            guardar_datos()
             break
         else:
             print("\nOpción no válida.")
 if __name__ == "__main__":
+    cargar_datos()
     menu()
