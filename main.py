@@ -3,9 +3,10 @@ import random
 import json
 import os
 from datetime import datetime
+from functools import reduce  # para usar reduce
 
 ARCHIVO_DATOS = "datos_usuario.json"
-DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
+DIAS = ("Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo")
 
 def guardar_datos(habitos, plan_semanal, historial):
     datos = {
@@ -234,9 +235,7 @@ def ver_estadisticas(habitos):
 
 def agregar_actividad(plan_semanal):
     print("\n--- Agregar Actividad ---")
-    print("Días disponibles:")
-    for d in DIAS:
-        print("-", d)
+    print("Días disponibles:", ", ".join(DIAS))
 
     dia = input("Ingrese el día: ").capitalize()
     if dia not in DIAS:
@@ -246,7 +245,13 @@ def agregar_actividad(plan_semanal):
     hora = input("Ingrese la hora (HH:MM): ")
     actividad = input("Ingrese la actividad: ")
 
-    plan_semanal.append([dia, hora, actividad])
+    # conjunto para evitar duplicados
+    actividades_existentes = {(d, h, a) for d, h, a in plan_semanal}
+    if (dia, hora, actividad) in actividades_existentes:
+        print("Esa actividad ya está registrada.")
+        return plan_semanal
+
+    plan_semanal.append((dia, hora, actividad))
     print(f"Actividad '{actividad}' agregada para {dia} a las {hora}.")
     return plan_semanal
 
@@ -272,6 +277,23 @@ def ver_historial(historial):
             estado = "Cumplido" if r["cumplido"] == 1 else "No cumplido"
             print(f"  {r['fecha']} → {estado}")
 
+
+def calcular_porcentajes_lambda(habitos):
+    if not habitos:
+        print("No hay hábitos cargados.")
+        return
+
+    porcentajes = list(map(lambda h: (h[0], (sum(h[1]) / len(h[1]) * 100) if len(h[1]) > 0 else 0), habitos))
+    cumplidos = list(filter(lambda x: x[1] >= 50, porcentajes))
+    promedio = reduce(lambda acc, h: acc + h[1], porcentajes, 0) / len(porcentajes) if porcentajes else 0
+
+    print("\n=== Estadísticas Avanzadas (Lambda / Map / Filter / Reduce) ===")
+    print("Hábitos con más del 50% de cumplimiento:")
+    for nombre, p in cumplidos:
+        print(f"- {nombre}: {p:.2f}%")
+    print(f"\nPromedio general de cumplimiento: {promedio:.2f}%")
+
+
 def menu():
     habitos, plan_semanal, historial = cargar_datos()
 
@@ -290,6 +312,7 @@ def menu():
         print("11. Agregar actividad al plan semanal")
         print("12. Ver historial de hábitos")
         print("13. Editar hábito")
+        print("14. Estadísticas avanzadas (lambda/map/filter/reduce)")
         print("0. Salir")
 
         opcion = input("Seleccione una opción: ").strip()
@@ -322,6 +345,8 @@ def menu():
             ver_historial(historial)
         elif opcion == "13":
             habitos = editar_habito(habitos)
+        elif opcion == "14":
+            calcular_porcentajes_lambda(habitos)
         elif opcion == "0":
             print("\n¡Hasta la próxima!")
             guardar_datos(habitos, plan_semanal, historial)
