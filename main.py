@@ -3,7 +3,7 @@ import random
 import json
 import os
 from datetime import datetime
-from functools import reduce  # para usar reduce
+from functools import reduce
 
 ARCHIVO_DATOS = "datos_usuario.json"
 DIAS = ("Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo")
